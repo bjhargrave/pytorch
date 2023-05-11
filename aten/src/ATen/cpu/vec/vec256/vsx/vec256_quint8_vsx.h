@@ -392,9 +392,9 @@ struct Vectorized<c10::quint8> {
     const auto max_shift = vec_splats(static_cast<value_type>(sizeof(value_type) - 1));
     auto mask0 = vec_cmpgt(other._vec0, max_shift);
     auto mask1 = vec_cmpgt(other._vec1, max_shift);
-    auto masked0 = vec_andc(_vec0, mask0);
-    auto masked1 = vec_andc(_vec1, mask1);
-    return {vec_sl(masked0, other._vec0), vec_sl(masked1, other._vec1)};
+    auto shift0 = other._vec0;
+    auto shift1 = other._vec1;
+    return {vec_sl(vec_andc(_vec0, mask0), shift0), vec_sl(vec_andc(_vec1, mask1), shift1)};
   }
 
   Vectorized<c10::quint8> C10_ALWAYS_INLINE operator>>(const Vectorized<c10::quint8>& other) const {
@@ -402,9 +402,9 @@ struct Vectorized<c10::quint8> {
     const auto max_shift = vec_splats(static_cast<value_type>(sizeof(value_type) - 1));
     auto mask0 = vec_cmpgt(other._vec0, max_shift);
     auto mask1 = vec_cmpgt(other._vec1, max_shift);
-    auto masked0 = vec_andc(_vec0, mask0);
-    auto masked1 = vec_andc(_vec1, mask1);
-    return {vec_sr(masked0, other._vec0), vec_sr(masked1, other._vec1)};
+    auto shift0 = other._vec0;
+    auto shift1 = other._vec1;
+    return {vec_sr(vec_andc(_vec0, mask0), shift0), vec_sr(vec_andc(_vec1, mask1), shift1)};
   }
 };
 
