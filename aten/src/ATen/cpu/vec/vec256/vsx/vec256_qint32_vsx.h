@@ -64,6 +64,7 @@ struct Vectorized<c10::qint32> {
   using int_vec_return_type = std::array<Vectorized<c10::qint32>, 1>;
   using value_type = c10::qint32::underlying;
   using vec_internal_type = vint32;
+  using vec_internal_unsigned_type = vuint32;
   using vec_internal_mask_type = vbool32;
   C10_ALWAYS_INLINE Vectorized(vint32 v) : _vec0{v}, _vec1{v} {}
   C10_ALWAYS_INLINE Vectorized(vbool32 vmask) : _vecb0{vmask}, _vecb1{vmask} {}
@@ -220,7 +221,9 @@ struct Vectorized<c10::qint32> {
     auto mask1 = vec_or(vec_cmpgt(zero, other._vec1), vec_cmpgt(other._vec1, max_shift));
     auto masked0 = vec_andc(_vec0, mask0);
     auto masked1 = vec_andc(_vec1, mask1);
-    return {vec_sl(masked0, other._vec0), vec_sl(masked1, other._vec1)};
+    auto shift0 = reinterpret_cast<vec_internal_unsigned_type>(other._vec0);
+    auto shift1 = reinterpret_cast<vec_internal_unsigned_type>(other._vec1);
+    return {vec_sl(masked0, shift0), vec_sl(masked1, shift1)};
   }
 
   Vectorized<c10::qint32> C10_ALWAYS_INLINE operator>>(const Vectorized<c10::qint32>& other) const {
@@ -230,8 +233,8 @@ struct Vectorized<c10::qint32> {
     const auto max_shift = vec_splats(static_cast<value_type>(sizeof(value_type) - 1));
     auto mask0 = vec_or(vec_cmpgt(zero, other._vec0), vec_cmpgt(other._vec0, max_shift));
     auto mask1 = vec_or(vec_cmpgt(zero, other._vec1), vec_cmpgt(other._vec1, max_shift));
-    auto shift0 = vec_sel(other._vec0, max_shift, mask0);
-    auto shift1 = vec_sel(other._vec1, max_shift, mask1);
+    auto shift0 = reinterpret_cast<vec_internal_unsigned_type>(vec_sel(other._vec0, max_shift, mask0));
+    auto shift1 = reinterpret_cast<vec_internal_unsigned_type>(vec_sel(other._vec1, max_shift, mask1));
     return {vec_sra(_vec0, shift0), vec_sra(_vec1, shift1)};
   }
 };

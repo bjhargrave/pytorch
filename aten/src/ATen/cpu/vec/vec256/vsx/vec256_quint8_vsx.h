@@ -389,7 +389,6 @@ struct Vectorized<c10::quint8> {
 
   Vectorized<c10::quint8> C10_ALWAYS_INLINE operator<<(const Vectorized<c10::quint8>& other) const {
     // Shift values > sizeof-1 result in 0.
-    const auto zero = vec_splats(static_cast<value_type>(0));
     const auto max_shift = vec_splats(static_cast<value_type>(sizeof(value_type) - 1));
     auto mask0 = vec_cmpgt(other._vec0, max_shift);
     auto mask1 = vec_cmpgt(other._vec1, max_shift);
@@ -400,7 +399,6 @@ struct Vectorized<c10::quint8> {
 
   Vectorized<c10::quint8> C10_ALWAYS_INLINE operator>>(const Vectorized<c10::quint8>& other) const {
     // Shift values > sizeof-1 result in 0.
-    const auto zero = vec_splats(static_cast<value_type>(0));
     const auto max_shift = vec_splats(static_cast<value_type>(sizeof(value_type) - 1));
     auto mask0 = vec_cmpgt(other._vec0, max_shift);
     auto mask1 = vec_cmpgt(other._vec1, max_shift);
