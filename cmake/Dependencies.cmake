@@ -1806,6 +1806,7 @@ if(NOT INTERN_BUILD_MOBILE)
     add_compile_options(-DTH_HAVE_THREAD)
   endif(NOT C_HAS_THREAD)
 
+  find_package(VSX) # Power Altivec support
   find_package(ZVECTOR) # s390x simd support
 endif()
 
