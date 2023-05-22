@@ -29,6 +29,7 @@ class Vectorized<ComplexDbl> {
   using value_type = ComplexDbl;
   using vec_internal_type = vfloat64;
   using vec_internal_mask_type = vbool64;
+  using vec_data_type = std::pair<vec_internal_type, vec_internal_type>;
   using size_type = int;
   static constexpr size_type size() {
     return 2;
@@ -37,6 +38,7 @@ class Vectorized<ComplexDbl> {
   C10_ALWAYS_INLINE Vectorized(vfloat64 v) : _vec0{v}, _vec1{v} {}
   C10_ALWAYS_INLINE Vectorized(vbool64 vmask) : _vecb0{vmask}, _vecb1{vmask} {}
   C10_ALWAYS_INLINE Vectorized(vfloat64 v1, vfloat64 v2) : _vec0{v1}, _vec1{v2} {}
+  C10_ALWAYS_INLINE Vectorized(vec_data_type p) : _vec0{p.first}, _vec1{p.second} {}
   C10_ALWAYS_INLINE Vectorized(vbool64 v1, vbool64 v2) : _vecb0{v1}, _vecb1{v2} {}
 
   Vectorized(ComplexDbl val) {
@@ -48,6 +50,9 @@ class Vectorized<ComplexDbl> {
   Vectorized(ComplexDbl val1, ComplexDbl val2) {
     _vec0 = vfloat64{val1.real(), val1.imag()};
     _vec1 = vfloat64{val2.real(), val2.imag()};
+  }
+  C10_ALWAYS_INLINE operator vec_data_type() const {
+    return vec_data_type(_vec0, _vec1);
   }
 
   C10_ALWAYS_INLINE const vec_internal_type& vec0() const {
@@ -218,7 +223,7 @@ class Vectorized<ComplexDbl> {
         vec_mergeh(first._vec1, second._vec1)};
   }
 
-  Vectorized<ComplexDbl> abs_2_() const {
+  vec_data_type abs_2_() const {
     auto a = (*this).elwise_mult(*this);
     auto permuted = a.el_swapped();
     a = a + permuted;
@@ -226,7 +231,7 @@ class Vectorized<ComplexDbl> {
   }
 
   Vectorized<ComplexDbl> abs_() const {
-    auto ret = abs_2_();
+    Vectorized<ComplexDbl> ret = abs_2_();
     return ret.elwise_sqrt();
   }
 

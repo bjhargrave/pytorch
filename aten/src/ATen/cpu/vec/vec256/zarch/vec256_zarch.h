@@ -386,6 +386,7 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
 
   C10_ALWAYS_INLINE Vectorized(vtype v) : _vec0{v}, _vec1{v} {}
   C10_ALWAYS_INLINE Vectorized(vtype v1, vtype v2) : _vec0{v1}, _vec1{v2} {}
+  C10_ALWAYS_INLINE Vectorized(const Vectorized<T>& v) : _vec0{v._vec0}, _vec1{v._vec1} {}
   C10_ALWAYS_INLINE Vectorized(T s)
       : _vec0{vec_splats((ElementType)s)}, _vec1{vec_splats((ElementType)s)} {}
 
@@ -2128,7 +2129,7 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
 #if !defined(ZVECTOR_SIMULATE_X86_MULT)
     vinner_type vi = bv.mergeo();
     vinner_type vr = bv.mergee();
-    vinner_type abs_b = b.abs_2_().vec();
+    vinner_type abs_b = b.abs_2_();
     vi = vi ^ isign_mask<underline_type>();
     vinner_type ret = _vec * vr;
     vinner_type vx_swapped = _vec.swapped();
@@ -2140,7 +2141,7 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
     vinner_type d_c = bv.swapped();
     d_c = d_c ^ rsign_mask<underline_type>();
     vinner_type ad_bc = _vec * d_c;
-    vinner_type abs_b = b.abs_2_().vec();
+    vinner_type abs_b = b.abs_2_();
     vinner_type re_im = vinner_type::horizontal_add_perm(ac_bd, ad_bc);
     vinner_type ret = re_im / abs_b;
 #endif
@@ -2279,15 +2280,15 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
     return Vectorized<T>(_vec ^ vinner_type(isign_mask<underline_type>()));
   }
 
-  Vectorized<T> abs_2_() const {
+  vinner_type abs_2_() const {
     auto a = _vec * _vec;
     a = a + a.swapped();
-    return Vectorized<T>(a.mergee());
+    return a.mergee();
   }
 
   Vectorized<T> abs_() const {
     auto ret = abs_2_();
-    return Vectorized<T>(ret.vec().sqrt());
+    return Vectorized<T>(ret.sqrt());
   }
 
   Vectorized<T> abs() const {
@@ -2338,7 +2339,7 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
     // re = (ac + bd)/abs_2() = c/abs_2()
     // im = (bc - ad)/abs_2() = d/abs_2()
     vinner_type c_d = _vec ^ vinner_type(isign_mask<underline_type>());
-    vinner_type abs = abs_2_().vec();
+    vinner_type abs = abs_2_();
     return Vectorized<T>{c_d / abs};
   }
 

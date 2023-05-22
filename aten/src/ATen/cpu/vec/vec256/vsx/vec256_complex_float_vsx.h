@@ -31,6 +31,7 @@ class Vectorized<ComplexFlt> {
   using value_type = ComplexFlt;
   using vec_internal_type = vfloat32;
   using vec_internal_mask_type = vbool32;
+  using vec_data_type = std::pair<vec_internal_type, vec_internal_type>;
   using size_type = int;
 
   static constexpr size_type size() {
@@ -41,6 +42,7 @@ class Vectorized<ComplexFlt> {
   C10_ALWAYS_INLINE Vectorized(vfloat32 v) : _vec0{v}, _vec1{v} {}
   C10_ALWAYS_INLINE Vectorized(vbool32 vmask) : _vecb0{vmask}, _vecb1{vmask} {}
   C10_ALWAYS_INLINE Vectorized(vfloat32 v1, vfloat32 v2) : _vec0{v1}, _vec1{v2} {}
+  C10_ALWAYS_INLINE Vectorized(vec_data_type p) : _vec0{p.first}, _vec1{p.second} {}
   C10_ALWAYS_INLINE Vectorized(vbool32 v1, vbool32 v2) : _vecb0{v1}, _vecb1{v2} {}
 
   Vectorized(ComplexFlt val) {
@@ -53,6 +55,9 @@ class Vectorized<ComplexFlt> {
   Vectorized(ComplexFlt val1, ComplexFlt val2, ComplexFlt val3, ComplexFlt val4) {
     _vec0 = vfloat32{val1.real(), val1.imag(), val2.real(), val2.imag()};
     _vec1 = vfloat32{val3.real(), val3.imag(), val4.real(), val4.imag()};
+  }
+  C10_ALWAYS_INLINE operator vec_data_type() const {
+    return vec_data_type(_vec0, _vec1);
   }
 
   template <uint64_t mask>
@@ -266,7 +271,7 @@ class Vectorized<ComplexFlt> {
     return el_mergee(first_ret, second_ret); // 2 mergee's
   }
 
-  Vectorized<ComplexFlt> abs_2_() const {
+  vec_data_type abs_2_() const {
     auto a = (*this).elwise_mult(*this);
     auto permuted = a.el_swapped();
     a = a + permuted;
@@ -274,7 +279,7 @@ class Vectorized<ComplexFlt> {
   }
 
   Vectorized<ComplexFlt> abs_() const {
-    auto ret = abs_2_();
+    Vectorized<ComplexFlt> ret = abs_2_();
     return ret.elwise_sqrt();
   }
 

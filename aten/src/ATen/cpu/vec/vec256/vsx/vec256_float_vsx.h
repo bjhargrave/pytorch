@@ -29,6 +29,7 @@ class Vectorized<float> {
   using value_type = float;
   using vec_internal_type = vfloat32;
   using vec_internal_mask_type = vbool32;
+  using vec_data_type = std::pair<vec_internal_type, vec_internal_type>;
   using size_type = int;
 
   static constexpr size_type size() {
@@ -39,6 +40,7 @@ class Vectorized<float> {
   C10_ALWAYS_INLINE Vectorized(vfloat32 v) : _vec0{v}, _vec1{v} {}
   C10_ALWAYS_INLINE Vectorized(vbool32 vmask) : _vecb0{vmask}, _vecb1{vmask} {}
   C10_ALWAYS_INLINE Vectorized(vfloat32 v1, vfloat32 v2) : _vec0{v1}, _vec1{v2} {}
+  C10_ALWAYS_INLINE Vectorized(vec_data_type p) : _vec0{p.first}, _vec1{p.second} {}
   C10_ALWAYS_INLINE Vectorized(vbool32 v1, vbool32 v2) : _vecb0{v1}, _vecb1{v2} {}
   C10_ALWAYS_INLINE Vectorized(float scalar)
       : _vec0{vec_splats(scalar)}, _vec1{vec_splats(scalar)} {}
@@ -53,6 +55,9 @@ class Vectorized<float> {
       float scalar8)
       : _vec0{vfloat32{scalar1, scalar2, scalar3, scalar4}},
         _vec1{vfloat32{scalar5, scalar6, scalar7, scalar8}} {}
+  C10_ALWAYS_INLINE operator vec_data_type() const {
+    return vec_data_type(_vec0, _vec1);
+  }
   C10_ALWAYS_INLINE const vec_internal_type& vec0() const {
     return _vec0;
   }
