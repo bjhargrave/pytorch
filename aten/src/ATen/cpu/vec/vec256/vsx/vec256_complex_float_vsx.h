@@ -427,7 +427,7 @@ class Vectorized<ComplexFlt> {
     // re = (ac + bd)/abs_2() = c/abs_2()
     // im = (bc - ad)/abs_2() = d/abs_2()
     auto c_d = *this ^ isign_mask; // c       -d
-    auto abs = abs_2_();
+    Vectorized<ComplexFlt> abs = abs_2_();
     return c_d.elwise_div(abs);
   }
 
@@ -492,7 +492,7 @@ class Vectorized<ComplexFlt> {
 #if 1
     auto vi = b.el_mergeo();
     auto vr = b.el_mergee();
-    auto abs_b = b.abs_2_();
+    Vectorized<ComplexFlt> abs_b = b.abs_2_();
     vi = vi ^ isign_mask;
     auto ret = elwise_mult(vr);
     auto vx_swapped = el_swapped();
@@ -504,7 +504,7 @@ class Vectorized<ComplexFlt> {
     auto d_c = b.el_swapped();
     d_c = d_c ^ rsign_mask;
     auto ad_bc = elwise_mult(d_c);
-    auto abs_b = b.abs_2_();
+    Vectorized<ComplexFlt> abs_b = b.abs_2_();
     auto re_im = horizontal_add_permD8(ac_bd, ad_bc);
     auto ret = re_im.elwise_div(abs_b);
 #endif
@@ -638,8 +638,8 @@ template <>
 Vectorized<ComplexFlt> inline maximum(
     const Vectorized<ComplexFlt>& a,
     const Vectorized<ComplexFlt>& b) {
-  auto abs_a = a.abs_2_();
-  auto abs_b = b.abs_2_();
+  Vectorized<ComplexFlt> abs_a = a.abs_2_();
+  Vectorized<ComplexFlt> abs_b = b.abs_2_();
   // auto mask = _mm256_cmp_ps(abs_a, abs_b, _CMP_LT_OQ);
   // auto max = _mm256_blendv_ps(a, b, mask);
   auto mask = abs_a.elwise_lt(abs_b);
@@ -655,8 +655,8 @@ template <>
 Vectorized<ComplexFlt> inline minimum(
     const Vectorized<ComplexFlt>& a,
     const Vectorized<ComplexFlt>& b) {
-  auto abs_a = a.abs_2_();
-  auto abs_b = b.abs_2_();
+  Vectorized<ComplexFlt> abs_a = a.abs_2_();
+  Vectorized<ComplexFlt> abs_b = b.abs_2_();
   // auto mask = _mm256_cmp_ps(abs_a, abs_b, _CMP_GT_OQ);
   // auto min = _mm256_blendv_ps(a, b, mask);
   auto mask = abs_a.elwise_gt(abs_b);
